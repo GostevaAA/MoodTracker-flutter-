@@ -5,7 +5,7 @@ import 'blocs/mood/mood_bloc.dart';
 import 'blocs/mood/mood_event.dart';
 import 'data/datasources/app_database.dart';
 import 'data/repositories/mood_repository.dart';
-import 'features/home/home_page.dart';
+import 'features/main_scaffold.dart';
 
 class MoodTrackerApp extends StatelessWidget {
   const MoodTrackerApp({super.key, required this.database});
@@ -30,7 +30,7 @@ class MoodTrackerApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: const HomePage(),
+        home: const MainScaffold(),
       ),
     );
   }
