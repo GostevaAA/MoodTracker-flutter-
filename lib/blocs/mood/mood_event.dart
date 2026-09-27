@@ -9,12 +9,10 @@ abstract class MoodEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Запуск Bloc-а: подписаться на стрим записей из БД.
 class MoodStarted extends MoodEvent {
   const MoodStarted();
 }
 
-/// Добавить новую запись.
 class MoodEntryAdded extends MoodEvent {
   const MoodEntryAdded(this.entry);
 
@@ -24,7 +22,6 @@ class MoodEntryAdded extends MoodEvent {
   List<Object?> get props => [entry];
 }
 
-/// Обновить существующую запись.
 class MoodEntryUpdated extends MoodEvent {
   const MoodEntryUpdated(this.entry);
 
@@ -34,7 +31,6 @@ class MoodEntryUpdated extends MoodEvent {
   List<Object?> get props => [entry];
 }
 
-/// Удалить запись по id.
 class MoodEntryDeleted extends MoodEvent {
   const MoodEntryDeleted(this.id);
 
@@ -42,4 +38,15 @@ class MoodEntryDeleted extends MoodEvent {
 
   @override
   List<Object?> get props => [id];
+}
+
+/// Восстановление записи после удаления (undo).
+/// Не проверяет конфликты — используется только сразу после удаления.
+class MoodEntryRestored extends MoodEvent {
+  const MoodEntryRestored(this.entry);
+
+  final MoodEntry entry;
+
+  @override
+  List<Object?> get props => [entry];
 }

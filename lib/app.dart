@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'blocs/mood/mood_bloc.dart';
 import 'blocs/mood/mood_event.dart';
@@ -63,6 +64,16 @@ class _AppView extends StatelessWidget {
           darkTheme: AppTheme.dark(themeState.preset),
           themeMode: themeState.mode,
           home: const MainScaffold(),
+          locale: const Locale('ru'),
+          supportedLocales: const [
+            Locale('ru'),
+            Locale('en'),
+          ],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
         );
       },
     );

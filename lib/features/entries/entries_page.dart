@@ -137,6 +137,36 @@ class _EntryCard extends StatelessWidget {
                           color: colorScheme.onSurfaceVariant,
                         ),
                   ),
+                  if (entry.tags.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: entry.tags
+                          .map(
+                            (tag) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.secondaryContainer,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                tag,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSecondaryContainer,
+                                    ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -165,7 +195,7 @@ class _EntryCard extends StatelessWidget {
         content: const Text('Запись удалена'),
         action: SnackBarAction(
           label: 'Отменить',
-          onPressed: () => bloc.add(MoodEntryAdded(entry)),
+          onPressed: () => bloc.add(MoodEntryRestored(entry)),
         ),
         duration: const Duration(seconds: 5),
       ),
