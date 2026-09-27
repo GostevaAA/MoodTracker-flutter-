@@ -16,8 +16,13 @@ class MoodTrackerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final repository = MoodRepository(database);
 
-    return BlocProvider(
-      create: (_) => MoodBloc(repository)..add(const MoodStarted()),
+    return MultiBlocProvider(
+      providers: [
+        RepositoryProvider<MoodRepository>.value(value: repository),
+        BlocProvider(
+          create: (_) => MoodBloc(repository)..add(const MoodStarted()),
+        ),
+      ],
       child: MaterialApp(
         title: 'Mood Tracker',
         debugShowCheckedModeBanner: false,
