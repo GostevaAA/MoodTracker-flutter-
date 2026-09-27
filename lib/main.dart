@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'app.dart';
+import 'data/datasources/app_database.dart';
 
-void main() {
-  runApp(const MoodTrackerApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final database = await AppDatabase.open();
+  runApp(MoodTrackerApp(database: database));
 }

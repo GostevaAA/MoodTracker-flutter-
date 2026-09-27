@@ -1,38 +1,18 @@
-import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
+import 'package:sembast/sembast_memory.dart';
 
-part 'app_database.g.dart';
+/// Обёртка над sembast: открывает БД и даёт доступ к стору записей.
+class AppDatabase {
+  AppDatabase._(this.db);
 
-/// Таблица для хранения записей настроения.
-@DataClassName('MoodEntryRow')
-class MoodEntries extends Table {
-  /// Уникальный идентификатор (строковый, генерируем сами через uuid).
-  TextColumn get id => text()();
+  final Database db;
 
-  /// Дата записи (без времени — только год, месяц, день).
-  DateTimeColumn get date => dateTime()();
+  /// Стор, где хранятся записи настроения.
+  static final StoreRef<String, Map<String, Object?>> moodStore =
+      stringMapStoreFactory.store('mood_entries');
 
-  /// Уровень настроения от 1 (плохо) до 5 (отлично).
-  IntColumn get moodLevel => integer()();
-
-  /// Опциональная заметка.
-  TextColumn get note => text().nullable()();
-
-  /// Теги/факторы, хранятся как CSV-строка.
-  TextColumn get tags => text().withDefault(const Constant(''))();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-@DriftDatabase(tables: [MoodEntries])
-class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
-
-  @override
-  int get schemaVersion => 1;
-
-  static QueryExecutor _openConnection() {
-    return driftDatabase(name: 'mood_tracker_db');
+  static Future<AppDatabase> open() async {
+    // Временное решение для Chrome — данные не сохраняются между перезапусками
+    final db = await databaseFactoryMemory.openDatabase('mood_tracker.db');
+    return AppDatabase._(db);
   }
 }
