@@ -31,8 +31,7 @@ class DateFormatter {
   /// Полная дата с днём недели: «Понедельник, 12 мая 2025».
   static String fullWithWeekday(DateTime date) {
     final formatted = DateFormat('EEEE, d MMMM y', 'ru').format(date);
-    // Делаем первую букву заглавной
-    return formatted[0].toUpperCase() + formatted.substring(1);
+    return _capitalize(formatted);
   }
 
   /// Короткая дата для списков: «12 мая».
@@ -42,7 +41,18 @@ class DateFormatter {
 
   /// День недели: «Понедельник».
   static String weekday(DateTime date) {
-    final formatted = DateFormat('EEEE', 'ru').format(date);
-    return formatted[0].toUpperCase() + formatted.substring(1);
+    return _capitalize(DateFormat('EEEE', 'ru').format(date));
+  }
+
+  /// Название месяца с годом: «Май 2025».
+  static String monthWithYear(int year, int month) {
+    final date = DateTime(year, month);
+    final formatted = DateFormat('LLLL y', 'ru').format(date);
+    return _capitalize(formatted);
+  }
+
+  static String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
   }
 }
