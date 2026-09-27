@@ -34,6 +34,7 @@ class MoodCalendar extends StatelessWidget {
     final byDate = _entriesByDate;
 
     return TableCalendar<MoodEntry>(
+      locale: 'ru_RU',
       firstDay: DateTime(2020),
       lastDay: DateTime.now().add(const Duration(days: 365)),
       focusedDay: focusedDay,
@@ -45,9 +46,12 @@ class MoodCalendar extends StatelessWidget {
       onDaySelected: onDaySelected,
       onPageChanged: onPageChanged,
       availableGestures: AvailableGestures.horizontalSwipe,
-      headerStyle: const HeaderStyle(
+      headerStyle: HeaderStyle(
         formatButtonVisible: false,
         titleCentered: true,
+        titleTextStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
       ),
       daysOfWeekHeight: 24,
       rowHeight: 56,
@@ -114,7 +118,6 @@ class _DayCell extends StatelessWidget {
   final bool isToday;
   final bool isOutside;
 
-  /// Эталонные размеры — от них отталкивается вёрстка до масштабирования.
   static const double _iconSize = 28;
   static const double _highlightSize = 36;
 
@@ -162,8 +165,6 @@ class _DayCell extends StatelessWidget {
       );
     }
 
-    // Эталонная вёрстка ячейки — фиксированные размеры,
-    // чтобы FittedBox мог предсказуемо масштабировать.
     final cell = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
@@ -190,8 +191,6 @@ class _DayCell extends StatelessWidget {
 
     return Opacity(
       opacity: isOutside ? 0.35 : 1.0,
-      // FittedBox мягко сжимает содержимое, если оно не влезает
-      // в размеры ячейки, отведённые table_calendar.
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: cell,

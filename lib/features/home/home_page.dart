@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/mood/mood_bloc.dart';
 import '../../blocs/mood/mood_state.dart';
+import '../../core/utils/date_formatter.dart';
 import '../../core/utils/date_utils.dart' as date_utils;
 import '../../core/widgets/mood_icon.dart';
 import '../editor/editor_page.dart';
@@ -56,6 +57,18 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    DateFormatter.fullWithWeekday(_selectedDay),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ),
               Expanded(
                 child: selectedEntries.isEmpty
                     ? const Center(
