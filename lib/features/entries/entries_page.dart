@@ -6,9 +6,10 @@ import '../../blocs/mood/mood_event.dart';
 import '../../blocs/mood/mood_state.dart';
 import '../../core/utils/date_formatter.dart';
 import '../../core/utils/entries_grouper.dart';
+import '../../core/widgets/app_card.dart';
+import '../../core/widgets/mood_icon.dart';
 import '../../data/models/mood_entry.dart';
 import '../editor/editor_page.dart';
-import 'widgets/mood_entry_tile.dart';
 
 class EntriesPage extends StatelessWidget {
   const EntriesPage({super.key});
@@ -29,21 +30,19 @@ class EntriesPage extends StatelessWidget {
             );
           }
           if (state.entries.isEmpty) {
-            return const Center(
-              child: Text('Пока нет записей'),
-            );
+            return const Center(child: Text('Пока нет записей'));
           }
 
           final groups = groupByMonth(state.entries);
 
-          return ListView.builder(
-            itemCount: groups.length,
-            itemBuilder: (context, index) {
-              final group = groups[index];
-              return _MonthSection(
-                group: group,
-              );
-            },
+          return SafeArea(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              itemCount: groups.length,
+              itemBuilder: (context, index) {
+                return _MonthSection(group: groups[index]);
+              },
+            ),
           );
         },
       ),
@@ -62,7 +61,7 @@ class _MonthSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
           child: Text(
             DateFormatter.monthWithYear(group.year, group.month),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -72,19 +71,85 @@ class _MonthSection extends StatelessWidget {
           ),
         ),
         ...group.entries.map(
-          (entry) => MoodEntryTile(
-            entry: entry,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => EditorPage(existing: entry),
-                ),
-              );
-            },
-            onDelete: () => _deleteWithUndo(context, entry),
+          (entry) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _EntryCard(entry: entry),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _EntryCard extends StatelessWidget {
+  const _EntryCard({required this.entry});
+
+  final MoodEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Dismissible(
+      key: ValueKey(entry.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        decoration: BoxDecoration(
+          color: colorScheme.error,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Icon(Icons.delete, color: colorScheme.onError),
+      ),
+      onDismissed: (_) => _deleteWithUndo(context, entry),
+      child: AppCard(
+        padding: const EdgeInsets.all(16),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => EditorPage(existing: entry),
+            ),
+          );
+        },
+        child: Row(
+          children: [
+            MoodIcon(level: entry.moodLevel, size: 40),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    entry.moodLevel.label,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    entry.note != null && entry.note!.isNotEmpty
+                        ? entry.note!
+                        : DateFormatter.shortDate(entry.date),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              DateFormatter.shortDate(entry.date),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -92,20 +157,15 @@ class _MonthSection extends StatelessWidget {
     final bloc = context.read<MoodBloc>();
     final messenger = ScaffoldMessenger.of(context);
 
-    // Удаляем
     bloc.add(MoodEntryDeleted(entry.id));
 
-    // Показываем SnackBar с undo
     messenger.clearSnackBars();
     messenger.showSnackBar(
       SnackBar(
         content: const Text('Запись удалена'),
         action: SnackBarAction(
           label: 'Отменить',
-          onPressed: () {
-            // Возвращаем запись обратно тем же id
-            bloc.add(MoodEntryAdded(entry));
-          },
+          onPressed: () => bloc.add(MoodEntryAdded(entry)),
         ),
         duration: const Duration(seconds: 5),
       ),

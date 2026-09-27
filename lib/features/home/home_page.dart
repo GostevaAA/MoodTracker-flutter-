@@ -5,6 +5,7 @@ import '../../blocs/mood/mood_bloc.dart';
 import '../../blocs/mood/mood_state.dart';
 import '../../core/utils/date_formatter.dart';
 import '../../core/utils/date_utils.dart' as date_utils;
+import '../../core/widgets/app_card.dart';
 import '../../core/widgets/mood_icon.dart';
 import '../editor/editor_page.dart';
 import 'widgets/mood_calendar.dart';
@@ -23,7 +24,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mood Tracker')),
+      appBar: AppBar(
+        title: const Text('Mood Tracker'),
+      ),
       body: BlocBuilder<MoodBloc, MoodState>(
         builder: (context, state) {
           if (state.status == MoodStatus.loading ||
@@ -40,63 +43,152 @@ class _HomePageState extends State<HomePage> {
               .where((e) => date_utils.isSameDay(e.date, _selectedDay))
               .toList();
 
-          return Column(
-            children: [
-              MoodCalendar(
-                entries: state.entries,
-                focusedDay: _focusedDay,
-                selectedDay: _selectedDay,
-                onDaySelected: (selected, focused) {
-                  setState(() {
-                    _selectedDay = selected;
-                    _focusedDay = focused;
-                  });
-                },
-                onPageChanged: (focused) {
-                  _focusedDay = focused;
-                },
-              ),
-              const Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    DateFormatter.fullWithWeekday(_selectedDay),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ─── Календарь в карточке ───
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 12,
+                    ),
+                    child: MoodCalendar(
+                      entries: state.entries,
+                      focusedDay: _focusedDay,
+                      selectedDay: _selectedDay,
+                      onDaySelected: (selected, focused) {
+                        setState(() {
+                          _selectedDay = selected;
+                          _focusedDay = focused;
+                        });
+                      },
+                      onPageChanged: (focused) {
+                        _focusedDay = focused;
+                      },
+                    ),
                   ),
-                ),
-              ),
-              Expanded(
-                child: selectedEntries.isEmpty
-                    ? const Center(
-                        child: Text('На этот день записи нет'),
-                      )
-                    : ListView.builder(
-                        itemCount: selectedEntries.length,
-                        itemBuilder: (context, index) {
-                          final entry = selectedEntries[index];
-                          return ListTile(
-                            leading: MoodIcon(level: entry.moodLevel),
-                            title: Text(entry.moodLevel.label),
-                            subtitle:
-                                entry.note != null && entry.note!.isNotEmpty
-                                    ? Text(entry.note!)
-                                    : null,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => EditorPage(existing: entry),
-                                ),
-                              );
-                            },
-                          );
-                        },
+                  const SizedBox(height: 16),
+
+                  // ─── Заголовок выбранного дня ───
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      DateFormatter.fullWithWeekday(_selectedDay),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ─── Запись или пусто ───
+                  if (selectedEntries.isEmpty)
+                    AppCard(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 32,
                       ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.edit_note_outlined,
+                            size: 40,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'На этот день записи нет',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Нажми + чтобы добавить',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    ...selectedEntries.map(
+                      (entry) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: AppCard(
+                          padding: const EdgeInsets.all(16),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => EditorPage(existing: entry),
+                              ),
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              MoodIcon(
+                                level: entry.moodLevel,
+                                size: 44,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      entry.moodLevel.label,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                    if (entry.note != null &&
+                                        entry.note!.isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        entry.note!,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.chevron_right,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ],
+            ),
           );
         },
       ),

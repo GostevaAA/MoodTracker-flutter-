@@ -5,7 +5,9 @@ import 'package:uuid/uuid.dart';
 import '../../blocs/mood/mood_bloc.dart';
 import '../../blocs/mood/mood_event.dart';
 import '../../core/constants/mood_level.dart';
+import '../../core/utils/date_formatter.dart';
 import '../../core/utils/date_utils.dart' as date_utils;
+import '../../core/widgets/app_card.dart';
 import '../../core/widgets/mood_icon.dart';
 import '../../data/models/mood_entry.dart';
 import '../../data/repositories/mood_repository.dart';
@@ -13,10 +15,7 @@ import '../../data/repositories/mood_repository.dart';
 class EditorPage extends StatefulWidget {
   const EditorPage({super.key, this.existing, this.initialDate});
 
-  /// Если передана — редактируем. Если null — создаём новую.
   final MoodEntry? existing;
-
-  /// Дата, на которую создаётся запись (если existing == null).
   final DateTime? initialDate;
 
   @override
@@ -64,7 +63,6 @@ class _EditorPageState extends State<EditorPage> {
       return;
     }
 
-    // Создание новой — проверяем, нет ли уже записи на эту дату
     final existingForDate = await repository.getByDate(_date);
     if (!mounted) return;
 
@@ -79,7 +77,7 @@ class _EditorPageState extends State<EditorPage> {
               onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text('Отмена'),
             ),
-            TextButton(
+            FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               child: const Text('Заменить'),
             ),
@@ -120,7 +118,7 @@ class _EditorPageState extends State<EditorPage> {
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Отмена'),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () {
               context
                   .read<MoodBloc>()
@@ -128,6 +126,10 @@ class _EditorPageState extends State<EditorPage> {
               Navigator.of(dialogContext).pop();
               Navigator.of(context).pop();
             },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
             child: const Text('Удалить'),
           ),
         ],
@@ -148,40 +150,101 @@ class _EditorPageState extends State<EditorPage> {
             ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Как настроение?', style: TextStyle(fontSize: 16)),
-            const SizedBox(height: 16),
-            _MoodSelector(
-              selected: _moodLevel,
-              onChanged: (level) => setState(() => _moodLevel = level),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _noteController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Заметка (необязательно)',
-                border: OutlineInputBorder(),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ─── Дата ───
+              AppCard(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        DateFormatter.fullWithWeekday(_date),
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _save,
-              icon: const Icon(Icons.check),
-              label: Text(_isEditing ? 'Сохранить' : 'Добавить'),
-            ),
-          ],
+              const SizedBox(height: 16),
+
+              // ─── Настроение ───
+              AppCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Как настроение?',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 20),
+                    _MoodSelector(
+                      selected: _moodLevel,
+                      onChanged: (level) => setState(() => _moodLevel = level),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // ─── Заметка ───
+              AppCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Заметка',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _noteController,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        hintText: 'Что повлияло на настроение?',
+                        border: InputBorder.none,
+                        filled: false,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // ─── Кнопка ───
+              FilledButton.icon(
+                onPressed: _save,
+                icon: const Icon(Icons.check),
+                label: Text(_isEditing ? 'Сохранить' : 'Добавить'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// Горизонтальный ряд иконок настроения для выбора.
 class _MoodSelector extends StatelessWidget {
   const _MoodSelector({required this.selected, required this.onChanged});
 
@@ -194,24 +257,28 @@ class _MoodSelector extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: MoodLevel.values.map((level) {
         final isSelected = level == selected;
+        final colorScheme = Theme.of(context).colorScheme;
+
         return GestureDetector(
           onTap: () => onChanged(level),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isSelected
-                  ? Theme.of(context).colorScheme.primaryContainer
+                  ? colorScheme.primaryContainer
                   : Colors.transparent,
               border: Border.all(
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.transparent,
+                color: isSelected ? colorScheme.primary : Colors.transparent,
                 width: 2,
               ),
             ),
-            child: MoodIcon(level: level, size: 40),
+            child: MoodIcon(
+              level: level,
+              size: isSelected ? 44 : 36,
+            ),
           ),
         );
       }).toList(),

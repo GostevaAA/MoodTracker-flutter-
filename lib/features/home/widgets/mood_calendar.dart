@@ -32,6 +32,7 @@ class MoodCalendar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final byDate = _entriesByDate;
+    final theme = Theme.of(context);
 
     return TableCalendar<MoodEntry>(
       locale: 'ru_RU',
@@ -49,24 +50,35 @@ class MoodCalendar extends StatelessWidget {
       headerStyle: HeaderStyle(
         formatButtonVisible: false,
         titleCentered: true,
-        titleTextStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+        leftChevronIcon: Icon(
+          Icons.chevron_left,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        rightChevronIcon: Icon(
+          Icons.chevron_right,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        titleTextStyle: theme.textTheme.titleMedium!.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
       ),
       daysOfWeekHeight: 24,
       rowHeight: 56,
       calendarStyle: const CalendarStyle(
         markersMaxCount: 0,
         markersAutoAligned: false,
+        outsideDaysVisible: true,
       ),
       daysOfWeekStyle: DaysOfWeekStyle(
         weekdayStyle: TextStyle(
           fontSize: 12,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onSurfaceVariant,
         ),
         weekendStyle: TextStyle(
           fontSize: 12,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
       calendarBuilders: CalendarBuilders<MoodEntry>(

@@ -41,8 +41,8 @@ class _MainScaffoldState extends State<MainScaffold> {
             label: 'Календарь',
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
+            icon: Icon(Icons.insights_outlined),
+            selectedIcon: Icon(Icons.insights),
             label: 'Статистика',
           ),
           NavigationDestination(
