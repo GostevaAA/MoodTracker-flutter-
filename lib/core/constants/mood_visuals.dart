@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'mood_level.dart';
 
 /// Единый источник истины для визуализации настроения.
-/// Пока использует эмодзи как плейсхолдеры.
-/// В будущем: заменить на SVG / иконочный шрифт / Lottie — интерфейс останется тем же.
+/// Сейчас использует иконки Phosphor как плейсхолдер.
+/// Позже можно заменить на SVG / иконочный шрифт / Lottie —
+/// интерфейс (методы этого класса) останется тем же.
 class MoodVisuals {
   const MoodVisuals._();
 
-  /// Эмодзи-плейсхолдер для каждого уровня настроения.
-  static String emojiFor(MoodLevel level) {
+  /// Иконка для каждого уровня настроения.
+  static IconData iconFor(MoodLevel level) {
     switch (level) {
       case MoodLevel.awful:
-        return '😢';
+        return PhosphorIconsFill.smileyXEyes;
       case MoodLevel.bad:
-        return '🙁';
+        return PhosphorIconsFill.smileySad;
       case MoodLevel.okay:
-        return '😐';
+        return PhosphorIconsFill.smileyMeh;
       case MoodLevel.good:
-        return '🙂';
+        return PhosphorIconsFill.smiley;
       case MoodLevel.great:
-        return '😄';
+        return PhosphorIconsFill.smileyWink;
     }
   }
 
