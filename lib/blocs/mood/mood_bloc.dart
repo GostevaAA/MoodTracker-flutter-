@@ -3,6 +3,7 @@ import 'package:mood_tracker/data/models/mood_entry.dart';
 
 import '../../data/repositories/mood_repository.dart';
 import '../../data/repositories/save_result.dart';
+import '../../domain/stats/mood_stats.dart';
 import 'mood_event.dart';
 import 'mood_state.dart';
 
@@ -13,6 +14,7 @@ class MoodBloc extends Bloc<MoodEvent, MoodState> {
     on<MoodEntryUpdated>(_onUpdated);
     on<MoodEntryDeleted>(_onDeleted);
     on<MoodEntryRestored>(_onRestored);
+    on<MoodEntriesImported>(_onImported);
   }
 
   final MoodRepository _repository;
@@ -24,6 +26,7 @@ class MoodBloc extends Bloc<MoodEvent, MoodState> {
       onData: (entries) => state.copyWith(
         status: MoodStatus.ready,
         entries: entries,
+        stats: MoodStats.from(entries),
       ),
       onError: (error, _) => state.copyWith(
         status: MoodStatus.failure,
@@ -45,8 +48,6 @@ class MoodBloc extends Bloc<MoodEvent, MoodState> {
     MoodEntryRestored event,
     Emitter<MoodState> emit,
   ) async {
-    // Восстановление после удаления — всегда безопасно,
-    // потому что запись только что удалили с этой же даты.
     try {
       await _repository.saveEntry(event.entry);
     } catch (e) {
@@ -69,18 +70,27 @@ class MoodBloc extends Bloc<MoodEvent, MoodState> {
     }
   }
 
-  /// Общая логика сохранения.
-  ///
-  /// Редактор уже проверил конфликт и, если был, разрешил его
-  /// через `replaceEntry` до отправки события в Bloc.
-  /// Поэтому здесь конфликт маловероятен, но на всякий случай
-  /// обрабатываем его заменой — пользователь уже дал согласие.
+  /// Массовый импорт: заменяет все записи на переданные.
+  /// Старые данные удаляются — это явно подтверждено пользователем в UI.
+  Future<void> _onImported(
+    MoodEntriesImported event,
+    Emitter<MoodState> emit,
+  ) async {
+    try {
+      await _repository.replaceAll(event.entries);
+    } catch (e) {
+      emit(state.copyWith(
+        status: MoodStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
   Future<void> _save(MoodEntry entry, Emitter<MoodState> emit) async {
     try {
       final result = await _repository.saveEntry(entry);
       switch (result) {
         case SaveSuccess():
-          // стрим watchAll сам пришлёт новое состояние
           break;
         case SaveConflict(:final existing):
           await _repository.replaceEntry(entry, existing);

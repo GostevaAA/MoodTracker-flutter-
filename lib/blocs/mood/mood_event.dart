@@ -50,3 +50,13 @@ class MoodEntryRestored extends MoodEvent {
   @override
   List<Object?> get props => [entry];
 }
+
+/// Массовый импорт записей (заменяет все существующие).
+class MoodEntriesImported extends MoodEvent {
+  const MoodEntriesImported(this.entries);
+
+  final List<MoodEntry> entries;
+
+  @override
+  List<Object?> get props => [entries];
+}

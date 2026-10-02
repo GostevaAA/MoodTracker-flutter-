@@ -88,6 +88,15 @@ class MoodRepository {
     return null;
   }
 
+  /// Заменить все записи на переданные.
+  /// Удаляет всё, что было, и записывает новый набор.
+  Future<void> replaceAll(List<MoodEntry> entries) async {
+    await _store.delete(_db);
+    for (final entry in entries) {
+      await _store.record(entry.id).put(_db, _toMap(entry));
+    }
+  }
+
   // ─────────────────────────────────────────────────────────────
   // Маппинг
   // ─────────────────────────────────────────────────────────────
